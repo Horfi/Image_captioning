@@ -1,3 +1,6 @@
 https://www.kaggle.com/datasets/adityajn105/flickr8k?resource=download&select=Images
 
 download the dtat - images  
+
+
+put all the images into the folder name Flickr8k_Dataset

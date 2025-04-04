@@ -3,7 +3,8 @@ from tensorflow.keras.applications import InceptionV3
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import (
     Input, Dense, Embedding, LSTM, Dropout, 
-    MultiHeadAttention, LayerNormalization, Add
+    Concatenate, GlobalAveragePooling2D, RepeatVector, 
+    Attention, Add, Reshape, Multiply
 )
 import numpy as np
 import json
@@ -12,12 +13,12 @@ import os
 class CaptionModel:
     def __init__(self):
         self.model = None
-        self.tokenizer = None
+        self.encoder_model = None
+        self.decoder_model = None
         self.max_length = 40  # Maximum caption length
         self.vocab_size = None
         self.embedding_dim = 256
         self.units = 512
-        self.attention_heads = 8
         
         # Load vocabulary if exists
         vocab_path = os.path.join(os.path.dirname(__file__), 'vocabulary.json')
@@ -31,49 +32,50 @@ class CaptionModel:
                 self.end_token = self.word_to_index['<end>']
     
     def build_model(self):
-        """Build the CNN-Transformer model for image captioning"""
-        # Image encoder (CNN)
-        encoder = InceptionV3(include_top=False, weights='imagenet')
-        encoder_output = encoder.output
-        encoder_output = tf.keras.layers.GlobalAveragePooling2D()(encoder_output)
-        encoder_output = tf.keras.layers.Dense(self.embedding_dim)(encoder_output)
+        """Build and compile the image captioning model with a simpler architecture"""
+        # Image feature extractor
+        inception = InceptionV3(include_top=False, weights='imagenet')
+        inception.trainable = False  # Freeze the pre-trained model
         
-        # Text decoder with Transformer
-        decoder_input = Input(shape=(None,))
-        decoder_embedding = Embedding(self.vocab_size, self.embedding_dim)(decoder_input)
+        # Input layers
+        image_input = Input(shape=(299, 299, 3), name='image_input')
+        caption_input = Input(shape=(None,), name='caption_input')
         
-        # Transformer decoder layer
-        mha = MultiHeadAttention(num_heads=self.attention_heads, key_dim=self.embedding_dim)
-        norm1 = LayerNormalization(epsilon=1e-6)
-        norm2 = LayerNormalization(epsilon=1e-6)
-        dense1 = Dense(self.units, activation='relu')
-        dense2 = Dense(self.embedding_dim)
+        # Image encoder
+        x = inception(image_input)
+        x = GlobalAveragePooling2D()(x)
+        image_features = Dense(self.embedding_dim, activation='relu')(x)
         
-        # Cross-attention with image features
-        expanded_encoder_output = tf.expand_dims(encoder_output, 1)  # Add sequence dimension
-        attn_output = mha(
-            query=decoder_embedding,
-            key=expanded_encoder_output,
-            value=expanded_encoder_output
+        # Caption embedding
+        caption_embedding = Embedding(
+            input_dim=self.vocab_size,
+            output_dim=self.embedding_dim,
+            mask_zero=True,
+            name='embedding'
+        )(caption_input)
+        
+        # Create fixed-length features for each position in the caption
+        image_features_reshape = RepeatVector(self.max_length)(image_features)
+        
+        # Concatenate image features with text embedding
+        decoder_input = Concatenate()([image_features_reshape, caption_embedding])
+        
+        # LSTM decoder
+        decoder_output = LSTM(self.units, return_sequences=True)(decoder_input)
+        output = Dense(self.vocab_size)(decoder_output)
+        
+        # Define the model
+        self.model = Model(inputs=[image_input, caption_input], outputs=output)
+        
+        # Compile the model
+        self.model.compile(
+            optimizer='adam',
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            metrics=['accuracy']
         )
         
-        # Add & Norm
-        attn_output = Add()([attn_output, decoder_embedding])
-        attn_output = norm1(attn_output)
-        
-        # Feed Forward Network
-        ffn_output = dense1(attn_output)
-        ffn_output = dense2(ffn_output)
-        
-        # Add & Norm
-        decoder_output = Add()([ffn_output, attn_output])
-        decoder_output = norm2(decoder_output)
-        
-        # Final output layer
-        outputs = Dense(self.vocab_size)(decoder_output)
-        
-        # Create the full model
-        self.model = Model(inputs=[encoder.input, decoder_input], outputs=outputs)
+        # Print model summary
+        self.model.summary()
     
     def load_model(self, weights_path):
         """Load pre-trained model weights"""
@@ -93,8 +95,13 @@ class CaptionModel:
         result = []
         
         # Generate words until max length or end token
-        for i in range(self.max_length):
-            predictions = self.model([image[np.newaxis, ...], decoder_input])
+        for i in range(self.max_length - 1):  # -1 to account for start token
+            # Run the model to get predictions
+            predictions = self.model.predict([
+                np.expand_dims(image, 0),
+                decoder_input
+            ], verbose=0)
+            
             # Get the predicted ID for the next word
             predicted_id = tf.argmax(predictions[0, i, :]).numpy()
             
@@ -111,20 +118,27 @@ class CaptionModel:
         # Return the generated caption
         return ' '.join(result)
 
-    def train(self, dataset, epochs=20):
-        """
-        Train the model (simplified function - in practice would be more complex)
-        """
+    def train(self, dataset, val_dataset=None, epochs=20):
+        """Train the model"""
         if self.model is None:
             self.build_model()
         
-        # Configure the model for training
-        self.model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-            metrics=['accuracy']
-        )
-        
         # Train the model
-        # Note: This is simplified - actual training would involve more complex data handling
-        return self.model.fit(dataset, epochs=epochs)
+        callbacks = [
+            tf.keras.callbacks.ModelCheckpoint(
+                'model_checkpoint.h5',
+                save_best_only=True,
+                monitor='val_loss' if val_dataset else 'loss'
+            ),
+            tf.keras.callbacks.EarlyStopping(
+                patience=3,
+                monitor='val_loss' if val_dataset else 'loss'
+            )
+        ]
+        
+        return self.model.fit(
+            dataset,
+            validation_data=val_dataset,
+            epochs=epochs,
+            callbacks=callbacks
+        )

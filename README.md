@@ -78,6 +78,9 @@ cd image-caption-app
 
    python -m venv venv
 
+   works 100% for Python 3.11.9
+      python3.11 -m venv venv
+
 **Activate the Virtual Environment:**
    
    Windows: 
@@ -132,8 +135,9 @@ docker-compose up --build
 To train the model with your own dataset:
 
 1. Download and place the Flickr8k dataset (or another image captioning dataset) in the `data/` directory
-2. Navigate to the backend/models directory
-3. Run the training script:
+2. In data folder there is a file named  "Link_to_download_data.txt" navigate to it and there u can find the instruction where and how to downlaod the data
+3. Navigate to the backend/models directory
+4. Run the training script:
 
 ```bash
 cd backend/models
