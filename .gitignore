@@ -29,6 +29,9 @@ MANIFEST
 
 # Added to ignore large files/folders
 frontend/node_modules/
+!frontend/node_modules/.gitkeep
+data/Flickr8k_Dataset/*
+!data/Flickr8k_Dataset/.gitkeep
 data/Images.zip
 
 # PyInstaller
