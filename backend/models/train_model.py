@@ -118,7 +118,7 @@ def create_dataset(image_paths, captions, word_to_index, max_length, batch_size=
 def main():
     # Paths
     images_dir = '../../data/Flickr8k_Dataset/Flicker8k_Dataset'
-    captions_file = '../../data/Flickr8k_text/Flickr8k.token.txt'
+    captions_file = '../../data/Flickr8k_text/captions.txt'
     
     # Load dataset
     print("Loading dataset...")
