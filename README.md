@@ -76,10 +76,12 @@ cd image-caption-app
 ```
 **Create a Virtual Environment:**
 
-   python -m venv venv
 
    works 100% for Python 3.11.9
       python3.11 -m venv venv
+
+      or if ndowsnt work 
+      py -3.11 -m venv venv
 
 **Activate the Virtual Environment:**
    
@@ -92,7 +94,12 @@ cd image-caption-app
 
 2. **Set up the backend**
 
-```bash
+```
+pip install --upgrade pip
+ or
+python.exe -m pip install --upgrade pip
+
+
 cd backend
 pip install -r requirements.txt
 ```

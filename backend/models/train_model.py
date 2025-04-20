@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.applications.inception_v3 import preprocess_input
 from caption_model import CaptionModel
 
+
 def load_flickr8k_dataset(images_dir, captions_file):
     """Load the Flickr8k dataset"""
     # Read captions
@@ -126,8 +127,10 @@ def create_dataset(image_paths, captions, word_to_index, max_length, batch_size=
             sequences, maxlen=maxlen, padding='post', truncating='post')
     
     # Pad all sequences to the same length
-    padded_input_seqs = pad_sequences(all_input_seqs, max_length - 1)
-    padded_target_seqs = pad_sequences(all_target_seqs, max_length - 1)
+# new
+    padded_input_seqs  = pad_sequences(all_input_seqs,  max_length)
+    padded_target_seqs = pad_sequences(all_target_seqs, max_length)
+
     
     # Convert to tensors
     input_tensor = tf.convert_to_tensor(padded_input_seqs, dtype=tf.int32)
@@ -198,7 +201,7 @@ def main():
     # Parameters
     max_length = 40  # Maximum caption length
     vocab_size = len(word_to_index)
-    batch_size = 16  # Reduced batch size to avoid memory issues
+    batch_size = 8  # Reduced batch size to avoid memory issues
     
     # Split dataset
     print("Splitting dataset...")

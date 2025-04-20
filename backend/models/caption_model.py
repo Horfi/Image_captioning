@@ -1,4 +1,7 @@
 import tensorflow as tf
+from tensorflow.experimental import numpy as tnp
+
+
 from tensorflow.keras.applications import InceptionV3
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import (
@@ -9,6 +12,7 @@ from tensorflow.keras.layers import (
 import numpy as np
 import json
 import os
+print(">>> LOADED caption_model.py from:", __file__)
 
 class CaptionModel:
     def __init__(self):
@@ -17,8 +21,8 @@ class CaptionModel:
         self.decoder_model = None
         self.max_length = 40  # Maximum caption length
         self.vocab_size = None
-        self.embedding_dim = 256
-        self.units = 512
+        self.embedding_dim = 128
+        self.units = 256
         
         # Load vocabulary if exists
         vocab_path = os.path.join(os.path.dirname(__file__), 'vocabulary.json')
@@ -30,52 +34,38 @@ class CaptionModel:
                 self.vocab_size = len(self.word_to_index)
                 self.start_token = self.word_to_index['<start>']
                 self.end_token = self.word_to_index['<end>']
-    
+
     def build_model(self):
-        """Build and compile the image captioning model with a simpler architecture"""
-        # Image feature extractor
+        print(">>> USING NEW build_model (no BroadcastTo)")
+
         inception = InceptionV3(include_top=False, weights='imagenet')
-        inception.trainable = False  # Freeze the pre-trained model
-        
-        # Input layers
-        image_input = Input(shape=(299, 299, 3), name='image_input')
-        caption_input = Input(shape=(None,), name='caption_input')
-        
-        # Image encoder
+        inception.trainable = False
+
+        image_input   = Input((299,299,3), name='image_input')
+        caption_input = Input((None,),    name='caption_input')
+
         x = inception(image_input)
         x = GlobalAveragePooling2D()(x)
-        image_features = Dense(self.embedding_dim, activation='relu')(x)
-        
-        # Caption embedding
-        caption_embedding = Embedding(
+        image_feats = Dense(self.embedding_dim, activation='relu')(x)
+
+        # replicate image features across time‑steps
+        image_seq   = RepeatVector(self.max_length)(image_feats)   # shape=(None,max_len,embed_dim)
+        text_embed = Embedding(
             input_dim=self.vocab_size,
-            output_dim=self.embedding_dim,
-            mask_zero=True,
-            name='embedding'
+            output_dim=self.embedding_dim
         )(caption_input)
-        
-        # Create fixed-length features for each position in the caption
-        image_features_reshape = RepeatVector(self.max_length)(image_features)
-        
-        # Concatenate image features with text embedding
-        decoder_input = Concatenate()([image_features_reshape, caption_embedding])
-        
-        # LSTM decoder
-        decoder_output = LSTM(self.units, return_sequences=True)(decoder_input)
-        output = Dense(self.vocab_size)(decoder_output)
-        
-        # Define the model
-        self.model = Model(inputs=[image_input, caption_input], outputs=output)
-        
-        # Compile the model
-        self.model.compile(
-            optimizer='adam',
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-            metrics=['accuracy']
-        )
-        
-        # Print model summary
+
+
+        decoder_in  = Concatenate()([image_seq, text_embed])      # (None,max_len,2*embed_dim)
+        dec_out     = LSTM(self.units, return_sequences=True)(decoder_in)
+        output      = Dense(self.vocab_size)(dec_out)
+
+        self.model = Model([image_input, caption_input], output)
+        self.model.compile(optimizer='adam',
+                           loss='sparse_categorical_crossentropy',
+                           metrics=['accuracy'])
         self.model.summary()
+
     
     def load_model(self, weights_path):
         """Load pre-trained model weights"""
