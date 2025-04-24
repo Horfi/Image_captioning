@@ -102,6 +102,7 @@ python.exe -m pip install --upgrade pip
 
 cd backend
 pip install -r requirements.txt
+
 ```
 
 3. **Set up the frontend**
@@ -124,6 +125,7 @@ uvicorn app:app --reload
 
 ```bash
 cd frontend
+npm run convert-model
 npm start
 ```
 

@@ -151,7 +151,7 @@ def create_dataset(image_paths, captions, word_to_index, max_length, batch_size=
     
     # Apply mapping, shuffle, and batch
     dataset = dataset.map(map_func, num_parallel_calls=tf.data.AUTOTUNE)
-    dataset = dataset.cache().shuffle(buffer_size=1000)
+    dataset = dataset.cache().shuffle(buffer_size=500)
     dataset = dataset.batch(batch_size).prefetch(tf.data.AUTOTUNE)
     
     return dataset
@@ -180,6 +180,8 @@ def main():
     # Load dataset
     print("Loading dataset...")
     image_to_captions = load_flickr8k_dataset(images_dir, captions_file)
+    all_images = list(image_to_captions.keys())[:500]
+    image_to_captions = {k: image_to_captions[k] for k in all_images}
     
     # Preprocess captions
     print("Preprocessing captions...")
@@ -241,12 +243,17 @@ def main():
     
     print("Training model...")
     # Train for 10 epochs
-    history = model.train(train_dataset, val_dataset, epochs=10)
+    history = model.train(train_dataset, val_dataset, epochs=5)
+
+    print("Training complete!")
     
     # Save model weights
-    print("Saving model...")
-    model.model.save_weights('model_weights.h5')
-    print("Training complete!")
+    print("Saving full model for TF.js conversion…")
+    out_dir = os.path.join(os.path.dirname(__file__), 'caption_model_saved')
+    model.model.save(out_dir, save_format='tf')
+    print(f"✅ Full model saved to {out_dir}")
+
+
 
 if __name__ == "__main__":
     main()
