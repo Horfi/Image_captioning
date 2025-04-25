@@ -152,6 +152,8 @@ To train the model with your own dataset:
 cd backend/models
 python train_model.py
 ```
+## now we need to do something more to prepare saved model 
+
 
 ## License
 

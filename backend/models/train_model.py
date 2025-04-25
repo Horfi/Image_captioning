@@ -247,12 +247,10 @@ def main():
 
     print("Training complete!")
     
-    # Save model weights
-    print("Saving full model for TF.js conversion…")
-    out_dir = os.path.join(os.path.dirname(__file__), 'caption_model_saved')
-    model.model.save(out_dir, save_format='tf')
-    print(f"✅ Full model saved to {out_dir}")
-
+    keras_path = os.path.join(os.path.dirname(__file__), 'caption_model_500.keras')
+    print(f"⏳ Saving Keras model to {keras_path}…")
+    model.model.save(keras_path)
+    print(f"✅ Saved Keras model to {keras_path}")
 
 
 if __name__ == "__main__":

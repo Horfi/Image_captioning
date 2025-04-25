@@ -1,18 +1,13 @@
 import tensorflow as tf
-from tensorflow.experimental import numpy as tnp
-
-
+import numpy as np
 from tensorflow.keras.applications import InceptionV3
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import (
-    Input, Dense, Embedding, LSTM, Dropout, 
-    Concatenate, GlobalAveragePooling2D, RepeatVector, 
-    Attention, Add, Reshape, Multiply
+    Input, Dense, Embedding, LSTM,
+    GlobalAveragePooling2D, RepeatVector, Concatenate
 )
-import numpy as np
 import json
 import os
-print(">>> LOADED caption_model.py from:", __file__)
 
 class CaptionModel:
     def __init__(self):
@@ -36,7 +31,7 @@ class CaptionModel:
                 self.end_token = self.word_to_index['<end>']
 
     def build_model(self):
-        print(">>> USING NEW build_model (no BroadcastTo)")
+        print('>>> USING NEW build_model (no BroadcastTo)')
 
         inception = InceptionV3(include_top=False, weights='imagenet')
         inception.trainable = False
@@ -48,13 +43,12 @@ class CaptionModel:
         x = GlobalAveragePooling2D()(x)
         image_feats = Dense(self.embedding_dim, activation='relu')(x)
 
-        # replicate image features across time‑steps
+        # replicate image features across fixed max_length timesteps
         image_seq   = RepeatVector(self.max_length)(image_feats)   # shape=(None,max_len,embed_dim)
         text_embed = Embedding(
             input_dim=self.vocab_size,
             output_dim=self.embedding_dim
         )(caption_input)
-
 
         decoder_in  = Concatenate()([image_seq, text_embed])      # (None,max_len,2*embed_dim)
         dec_out     = LSTM(self.units, return_sequences=True)(decoder_in)
@@ -66,7 +60,6 @@ class CaptionModel:
                            metrics=['accuracy'])
         self.model.summary()
 
-    
     def load_model(self, weights_path):
         """Load pre-trained model weights"""
         if self.model is None and self.vocab_size is not None:
@@ -80,32 +73,25 @@ class CaptionModel:
         if self.model is None:
             raise ValueError("Model not loaded. Call load_model first.")
         
-        # Initialize with start token
-        decoder_input = tf.expand_dims([self.start_token], 0)
         result = []
+        # Create a fixed-length sequence: <start> + pads
+        pad_token = self.word_to_index.get('<pad>')
+        seq = [self.start_token] + [pad_token] * (self.max_length - 1)
         
-        # Generate words until max length or end token
-        for i in range(self.max_length - 1):  # -1 to account for start token
-            # Run the model to get predictions
-            predictions = self.model.predict([
-                np.expand_dims(image, 0),
-                decoder_input
-            ], verbose=0)
-            
-            # Get the predicted ID for the next word
-            predicted_id = tf.argmax(predictions[0, i, :]).numpy()
-            
-            # If end token is predicted, stop
-            if predicted_id == self.end_token:
+        # Autoregressively predict next tokens
+        for t in range(self.max_length - 1):
+            img_batch = np.expand_dims(image, 0)      # [1,299,299,3]
+            seq_batch = np.expand_dims(seq, 0)       # [1,max_length]
+
+            preds = self.model.predict([img_batch, seq_batch], verbose=0)
+            next_id = int(np.argmax(preds[0, t]))
+
+            if next_id == self.end_token:
                 break
             
-            # Add the predicted word to the result
-            result.append(self.index_to_word.get(str(predicted_id), ''))
-            
-            # Update the decoder input for the next iteration
-            decoder_input = tf.concat([decoder_input, [[predicted_id]]], axis=-1)
+            result.append(self.index_to_word.get(str(next_id), ''))
+            seq[t + 1] = next_id  # overwrite pad
         
-        # Return the generated caption
         return ' '.join(result)
 
     def train(self, dataset, val_dataset=None, epochs=20):
@@ -113,7 +99,6 @@ class CaptionModel:
         if self.model is None:
             self.build_model()
         
-        # Train the model
         callbacks = [
             tf.keras.callbacks.ModelCheckpoint(
                 'model_checkpoint.h5',
