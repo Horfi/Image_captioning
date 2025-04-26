@@ -143,16 +143,13 @@ Access the app at `http://localhost:3000` once containers are healthy.
 
 ## Training the Model
 
-1. Place your dataset (e.g., Flickr8k) in `data/`.
-2. Follow the download instructions in `data/Link_to_download_data.txt`.
-3. Run:
+We trained on a subset of 5 000 Flickr8k images for 10 epochs, achieving ~48% training accuracy and ~38% validation accuracy. Further improvements could include:
 
-    ```bash
-    cd backend/models
-    python train_model.py
-    ```
-
-After training, saved weights appear in `backend/models/`.
+- Integrating an attention mechanism (e.g. Bahdanau or Transformer attention)
+- Expanding model capacity (more layers, larger hidden units)
+- Using a larger dataset (e.g. Flickr30k or MSCOCO)
+- Fine‑tuning the CNN encoder
+- Experimenting with advanced decoding strategies (beam search)
 
 ---
 
