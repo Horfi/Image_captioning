@@ -1,4 +1,6 @@
 # Real-Time Image Caption Generator Web App
+![image](https://github.com/user-attachments/assets/3a3be285-286e-416f-88fa-49812d2e7609)
+![image](https://github.com/user-attachments/assets/92258e2f-1673-4006-8bad-5f640d67ced3)
 
 This project is a web application that generates descriptive captions for uploaded images in real-time. It combines Computer Vision (using CNN) and Natural Language Processing (using Transformer) to create a complete, end-to-end AI solution.
 
@@ -14,7 +16,6 @@ The Image Caption Generator uses a CNN-Transformer architecture to process image
 - RESTful API backend for caption generation
 
 ## Tech Stack
-![image](https://github.com/user-attachments/assets/9612e10a-b7e3-44da-8a9e-820afcd54a00)
 
 ### Backend
 - **Language & Framework:** Python with FastAPI
@@ -164,3 +165,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - This project was inspired by the TensorFlow Image Captioning with Visual Attention tutorial
 - The model architecture is based on the CNN-Transformer approach for image captioning
+
+
