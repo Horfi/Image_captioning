@@ -1,6 +1,6 @@
 # Image Caption Generator Web App
 
-A real-time web application that generates descriptive captions for uploaded images using a state-of-the-art CNN‑Transformer model.
+A real-time web application that generates descriptive captions for uploaded images using a state-of-the-art CNN–Transformer model.
 
 ![App Preview](https://github.com/user-attachments/assets/3a3be285-286e-416f-88fa-49812d2e7609)
 ![Captioning Demo](https://github.com/user-attachments/assets/92258e2f-1673-4006-8bad-5f640d67ced3)
@@ -9,7 +9,7 @@ A real-time web application that generates descriptive captions for uploaded ima
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
-2. [Features](#features)
+2. [Key Features](#key-features)
 3. [Architecture](#architecture)
 4. [Tech Stack](#tech-stack)
 5. [Getting Started](#getting-started)
@@ -26,130 +26,126 @@ A real-time web application that generates descriptive captions for uploaded ima
 
 ## Project Overview
 
-The Image Caption Generator Web App provides an end‑to‑end AI solution that combines computer vision and natural language processing. Users can upload an image and receive a human‑like descriptive caption in real time.
+This application combines computer vision and natural language processing to deliver an end-to-end image captioning solution. Users upload an image and receive a fluent, human-like description in real time.
 
-<img src="architecture_diagram.png" alt="Architecture diagram" width="600" />
-
-### Goals
-- Demonstrate a production‑ready pipeline for image captioning
-- Offer a responsive, intuitive web UI
-- Serve captions via a RESTful API built with FastAPI
-- Support scalable deployment using Docker
+### Objectives
+- Showcase a production-ready image captioning pipeline
+- Provide an intuitive, responsive web UI
+- Offer low-latency inference via a FastAPI backend
+- Support containerized deployment with Docker
 
 ---
 
-## Features
-
-- **Drag & Drop Upload**: Seamless image uploads via drag‑and‑drop or file picker
-- **Instant Captioning**: Real‑time caption generation
-- **Responsive UI**: Dynamic preview and caption display
-- **REST API**: FastAPI backend exposes `/api/caption` endpoint
+## Key Features
+- **Drag & Drop Upload:** Easy image selection via drag-and-drop or file browser
+- **Real-Time Captioning:** Instant caption generation on the client
+- **Responsive UI:** Live image preview and caption display
+- **RESTful API:** FastAPI endpoint (`/api/caption`) for seamless integration
 
 ---
 
 ## Architecture
 
-1. **Frontend** (React)
-   - File upload component
-   - Image preview and caption display
-   - Fetch API integration
+![Architecture Diagram](architecture_diagram.png)
 
-2. **Backend** (FastAPI)
-   - `/api/caption`: accepts image uploads, returns generated caption
-   - Model loading at startup for low‑latency inference
+1. **Frontend (React)**
+   - File upload and preview component
+   - Fetch API calls to the backend
+   - Dynamic caption rendering
 
-3. **Model** (TensorFlow)
-   - CNN (InceptionV3) encoder for image feature extraction
-   - Transformer decoder for sequence generation
+2. **Backend (FastAPI)**
+   - `/api/caption` endpoint for image uploads and caption responses
+   - Model loaded at startup for edge latency
+
+3. **Model (TensorFlow + Keras)**
+   - **Encoder:** InceptionV3 CNN for feature extraction
+   - **Decoder:** Transformer-based sequence generator
 
 ---
 
 ## Tech Stack
 
-| Layer       | Technology             |
-|-------------|------------------------|
-| Frontend    | React, Fetch API, CSS  |
-| Backend     | Python, FastAPI, Uvicorn |
-| ML Framework| TensorFlow, Keras      |
-| Image I/O   | Pillow                 |
-| Deployment  | Docker, Docker Compose |
+| Layer          | Technology                     |
+| -------------- | ------------------------------ |
+| Frontend       | React, Fetch API, CSS          |
+| Backend        | Python, FastAPI, Uvicorn       |
+| ML Framework   | TensorFlow, Keras              |
+| Image Processing | Pillow                       |
+| Deployment     | Docker, Docker Compose         |
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-- **Python** ≥ 3.8
-- **Node.js** ≥ 14
+- **Python** >= 3.8
+- **Node.js** >= 14
 - **Docker** & **Docker Compose** (optional)
 
 ### Installation
 
-1. **Clone the repository**
+```bash
+# Clone repository
+git clone https://github.com/yourusername/image-caption-app.git
+cd image-caption-app
+```
 
-    ```bash
-    git clone https://github.com/yourusername/image-caption-app.git
-    cd image-caption-app
-    ```
+#### Backend Setup
+```bash
+cd backend
+python3 -m venv venv            # or `py -3.11 -m venv venv`
+# Activate virtual environment
+# macOS/Linux
+source venv/bin/activate
+# Windows PowerShell
+.\venv\Scripts\Activate.ps1
 
-2. **Backend setup**
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
-    ```bash
-    cd backend
-    python3 -m venv venv               # or py -3.11 -m venv venv
-    source venv/bin/activate           # Windows: .\venv\Scripts\Activate.ps1
-    pip install --upgrade pip
-    pip install -r requirements.txt
-    ```
-
-3. **Frontend setup**
-
-    ```bash
-    cd ../frontend
-    npm install
-    ```
+#### Frontend Setup
+```bash
+cd ../frontend
+npm install
+```
 
 ### Running Locally
+```bash
+# Backend
+cd backend
+uvicorn app:app --reload
 
-1. **Start backend**
-
-    ```bash
-    cd backend
-    uvicorn app:app --reload
-    ```
-
-2. **Start frontend**
-
-    ```bash
-    cd frontend
-    npm run convert-model
-    npm start
-    ```
-
-3. **Open** `http://localhost:3000`
+# Frontend
+cd ../frontend
+npm run convert-model
+npm start
+```
+Open your browser at `http://localhost:3000`
 
 ### Docker Deployment
-
-Ensure Docker daemon is running, then:
-
 ```bash
 cd docker
 docker-compose up --build
 ```
-
-Access the app at `http://localhost:3000` once containers are healthy.
+Visit `http://localhost:3000` after services start.
 
 ---
 
 ## Training the Model
 
-We trained on a subset of 5 000 Flickr8k images for 10 epochs, achieving ~48% training accuracy and ~38% validation accuracy. Further improvements could include:
+We trained on 5 000 Flickr8k images for 10 epochs, reaching ~48% training accuracy and ~38% validation accuracy. To enhance performance:
 
-- Integrating an attention mechanism (e.g. Bahdanau or Transformer attention)
-- Expanding model capacity (more layers, larger hidden units)
-- Using a larger dataset (e.g. Flickr30k or MSCOCO)
-- Fine‑tuning the CNN encoder
-- Experimenting with advanced decoding strategies (beam search)
+- Integrate an attention mechanism (e.g., Bahdanau or Transformer attention)
+- Increase model capacity (additional layers, larger hidden dimensions)
+- Scale dataset to Flickr30k or MSCOCO
+- Fine-tune the CNN encoder weights
+- Experiment with beam search or nucleus sampling during decoding
+
+```bash
+cd backend/models
+python train_model.py
+```
 
 ---
 
@@ -159,26 +155,26 @@ We trained on a subset of 5 000 Flickr8k images for 10 epochs, achieving ~48% 
 image-caption-app/
 ├── backend/            # FastAPI server & model code
 │   ├── app.py          # API endpoints
-│   ├── models/         # Model definition & training
+│   ├── models/         # Model definition, training & checkpoints
 │   └── utils/          # Preprocessing utilities
 ├── frontend/           # React application
-│   ├── public/
-│   └── src/
+│   ├── public/         # Static assets
+│   └── src/            # Components & styles
 ├── data/               # Datasets (excluded from repo)
-├── docker/             # Dockerfiles & compose
-└── README.md
+├── docker/             # Dockerfiles & compose configuration
+└── README.md           # Project overview and instructions
 ```
 
 ---
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+Licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
 ## Acknowledgments
 
-- Inspired by TensorFlow’s image captioning tutorials
-- CNN‑Transformer architecture reference papers
+- Inspired by TensorFlow image captioning tutorials
+- Based on CNN–Transformer architecture research papers
 
