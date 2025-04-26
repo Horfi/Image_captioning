@@ -14,6 +14,7 @@ The Image Caption Generator uses a CNN-Transformer architecture to process image
 - RESTful API backend for caption generation
 
 ## Tech Stack
+![image](https://github.com/user-attachments/assets/9612e10a-b7e3-44da-8a9e-820afcd54a00)
 
 ### Backend
 - **Language & Framework:** Python with FastAPI
