@@ -1,169 +1,187 @@
-# Real-Time Image Caption Generator Web App
-![image](https://github.com/user-attachments/assets/3a3be285-286e-416f-88fa-49812d2e7609)
-![image](https://github.com/user-attachments/assets/92258e2f-1673-4006-8bad-5f640d67ced3)
+# Image Caption Generator Web App
 
-This project is a web application that generates descriptive captions for uploaded images in real-time. It combines Computer Vision (using CNN) and Natural Language Processing (using Transformer) to create a complete, end-to-end AI solution.
+A real-time web application that generates descriptive captions for uploaded images using a state-of-the-art CNN‑Transformer model.
+
+![App Preview](https://github.com/user-attachments/assets/3a3be285-286e-416f-88fa-49812d2e7609)
+![Captioning Demo](https://github.com/user-attachments/assets/92258e2f-1673-4006-8bad-5f640d67ced3)
+
+---
+
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [Features](#features)
+3. [Architecture](#architecture)
+4. [Tech Stack](#tech-stack)
+5. [Getting Started](#getting-started)
+   - [Prerequisites](#prerequisites)
+   - [Installation](#installation)
+   - [Running Locally](#running-locally)
+   - [Docker Deployment](#docker-deployment)
+6. [Training the Model](#training-the-model)
+7. [Project Structure](#project-structure)
+8. [License](#license)
+9. [Acknowledgments](#acknowledgments)
+
+---
 
 ## Project Overview
 
-The Image Caption Generator uses a CNN-Transformer architecture to process images and generate relevant captions. The application provides a user-friendly interface for uploading images and viewing the generated captions.
+The Image Caption Generator Web App provides an end‑to‑end AI solution that combines computer vision and natural language processing. Users can upload an image and receive a human‑like descriptive caption in real time.
 
-### Key Features
+<img src="architecture_diagram.png" alt="Architecture diagram" width="600" />
 
-- Upload images via drag-and-drop or file selection
-- Real-time caption generation using a CNN-Transformer model
-- Responsive UI with image preview
-- RESTful API backend for caption generation
+### Goals
+- Demonstrate a production‑ready pipeline for image captioning
+- Offer a responsive, intuitive web UI
+- Serve captions via a RESTful API built with FastAPI
+- Support scalable deployment using Docker
+
+---
+
+## Features
+
+- **Drag & Drop Upload**: Seamless image uploads via drag‑and‑drop or file picker
+- **Instant Captioning**: Real‑time caption generation
+- **Responsive UI**: Dynamic preview and caption display
+- **REST API**: FastAPI backend exposes `/api/caption` endpoint
+
+---
+
+## Architecture
+
+1. **Frontend** (React)
+   - File upload component
+   - Image preview and caption display
+   - Fetch API integration
+
+2. **Backend** (FastAPI)
+   - `/api/caption`: accepts image uploads, returns generated caption
+   - Model loading at startup for low‑latency inference
+
+3. **Model** (TensorFlow)
+   - CNN (InceptionV3) encoder for image feature extraction
+   - Transformer decoder for sequence generation
+
+---
 
 ## Tech Stack
 
-### Backend
-- **Language & Framework:** Python with FastAPI
-- **Deep Learning:** TensorFlow for the CNN-Transformer model
-- **Image Processing:** Pillow for preprocessing
+| Layer       | Technology             |
+|-------------|------------------------|
+| Frontend    | React, Fetch API, CSS  |
+| Backend     | Python, FastAPI, Uvicorn |
+| ML Framework| TensorFlow, Keras      |
+| Image I/O   | Pillow                 |
+| Deployment  | Docker, Docker Compose |
 
-### Frontend
-- **Framework:** React
-- **HTTP Client:** Native Fetch API for API calls
-- **Styling:** Custom CSS
+---
 
-### Deployment
-- Local development with Uvicorn and React development server
-- Docker support for containerized deployment
+## Getting Started
+
+### Prerequisites
+- **Python** ≥ 3.8
+- **Node.js** ≥ 14
+- **Docker** & **Docker Compose** (optional)
+
+### Installation
+
+1. **Clone the repository**
+
+    ```bash
+    git clone https://github.com/yourusername/image-caption-app.git
+    cd image-caption-app
+    ```
+
+2. **Backend setup**
+
+    ```bash
+    cd backend
+    python3 -m venv venv               # or py -3.11 -m venv venv
+    source venv/bin/activate           # Windows: .\venv\Scripts\Activate.ps1
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
+
+3. **Frontend setup**
+
+    ```bash
+    cd ../frontend
+    npm install
+    ```
+
+### Running Locally
+
+1. **Start backend**
+
+    ```bash
+    cd backend
+    uvicorn app:app --reload
+    ```
+
+2. **Start frontend**
+
+    ```bash
+    cd frontend
+    npm run convert-model
+    npm start
+    ```
+
+3. **Open** `http://localhost:3000`
+
+### Docker Deployment
+
+Ensure Docker daemon is running, then:
+
+```bash
+cd docker
+docker-compose up --build
+```
+
+Access the app at `http://localhost:3000` once containers are healthy.
+
+---
+
+## Training the Model
+
+1. Place your dataset (e.g., Flickr8k) in `data/`.
+2. Follow the download instructions in `data/Link_to_download_data.txt`.
+3. Run:
+
+    ```bash
+    cd backend/models
+    python train_model.py
+    ```
+
+After training, saved weights appear in `backend/models/`.
+
+---
 
 ## Project Structure
 
 ```
 image-caption-app/
-├── backend/
-│   ├── app.py                   # API endpoints & model serving
-│   ├── models/
-│   │   ├── caption_model.py     # CNN-Transformer architecture
-│   │   ├── train_model.py       # Training script
-│   │   └── model_weights.h5     # Saved model weights (after training)
-│   ├── utils/
-│   │   └── preprocess.py        # Image preprocessing utilities
-│   ├── requirements.txt
-├── frontend/
+├── backend/            # FastAPI server & model code
+│   ├── app.py          # API endpoints
+│   ├── models/         # Model definition & training
+│   └── utils/          # Preprocessing utilities
+├── frontend/           # React application
 │   ├── public/
-│   ├── src/
-│   │   ├── components/          # React components
-│   │   ├── App.js               # Main application component
-│   │   ├── index.js             # Entry point
-│   │   └── styles.css           # Application styles
-│   ├── package.json
-├── data/                        # Dataset files (not included in repo)
-├── docker/                      # Docker configuration files
-│   ├── backend.Dockerfile
-│   ├── frontend.Dockerfile
-├── docker-compose.yml
+│   └── src/
+├── data/               # Datasets (excluded from repo)
+├── docker/             # Dockerfiles & compose
 └── README.md
 ```
 
-## Getting Started
-
-### Prerequisites
-
-- Python 3.8+ (for backend)
-- Node.js 14+ (for frontend)
-- Docker and Docker Compose (optional, for containerized deployment)
-
-### Installation and Setup
-
-1. **Clone the repository**
-
-```bash
-git clone https://github.com/yourusername/image-caption-app.git
-cd image-caption-app
-```
-**Create a Virtual Environment:**
-
-
-   works 100% for Python 3.11.9
-      python3.11 -m venv venv
-
-      or if ndowsnt work 
-      py -3.11 -m venv venv
-
-**Activate the Virtual Environment:**
-   
-   Windows: 
-      .\venv\Scripts\Activate.ps1
-
-   Mac/Linux
-      source venv/bin/activate
-
-
-2. **Set up the backend**
-
-```
-pip install --upgrade pip
- or
-python.exe -m pip install --upgrade pip
-
-
-cd backend
-pip install -r requirements.txt
-
-```
-
-3. **Set up the frontend**
-
-```bash
-cd frontend
-npm install
-```
-
-### Running the Application Locally
-
-1. **Start the backend server**
-
-```bash
-cd backend
-uvicorn app:app --reload
-```
-
-2. **Start the frontend development server**
-
-```bash
-cd frontend
-npm run convert-model
-npm start
-```
-
-3. **Access the application**
-   
-   Open your browser and navigate to `http://localhost:3000`
-
-### Running with Docker
-
-```bash
-docker-compose up --build
-```
-
-## Training the Model
-
-To train the model with your own dataset:
-
-1. Download and place the Flickr8k dataset (or another image captioning dataset) in the `data/` directory
-2. In data folder there is a file named  "Link_to_download_data.txt" navigate to it and there u can find the instruction where and how to downlaod the data
-3. Navigate to the backend/models directory
-4. Run the training script:
-
-```bash
-cd backend/models
-python train_model.py
-```
-## now we need to do something more to prepare saved model 
-
+---
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+
+---
 
 ## Acknowledgments
 
-- This project was inspired by the TensorFlow Image Captioning with Visual Attention tutorial
-- The model architecture is based on the CNN-Transformer approach for image captioning
-
+- Inspired by TensorFlow’s image captioning tutorials
+- CNN‑Transformer architecture reference papers
 
