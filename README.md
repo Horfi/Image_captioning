@@ -1,77 +1,116 @@
-# Image Caption Generator Web App
+# Image Caption Generator
 
-A real-time web application that generates descriptive captions for uploaded images using a state-of-the-art CNN–Transformer model.
+A real-time web application that generates descriptive captions for uploaded images using a CNN–Transformer architecture.
 
 ![App Preview](https://github.com/user-attachments/assets/3a3be285-286e-416f-88fa-49812d2e7609)
 ![Captioning Demo](https://github.com/user-attachments/assets/92258e2f-1673-4006-8bad-5f640d67ced3)
-
----
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
 2. [Key Features](#key-features)
 3. [Architecture](#architecture)
-4. [Tech Stack](#tech-stack)
-5. [Getting Started](#getting-started)
+4. [Implementation Details](#implementation-details)
+5. [Current Status & Future Work](#current-status--future-work)
+6. [Tech Stack](#tech-stack)
+7. [Getting Started](#getting-started)
    - [Prerequisites](#prerequisites)
    - [Installation](#installation)
    - [Running Locally](#running-locally)
    - [Docker Deployment](#docker-deployment)
-6. [Training the Model](#training-the-model)
-7. [Project Structure](#project-structure)
-8. [License](#license)
-9. [Acknowledgments](#acknowledgments)
+8. [Training Process](#training-process)
+9. [Project Structure](#project-structure)
+10. [License](#license)
 
 ---
 
 ## Project Overview
 
-This application combines computer vision and natural language processing to deliver an end-to-end image captioning solution. Users upload an image and receive a fluent, human-like description in real time.
+This application combines computer vision and natural language processing to deliver an end-to-end image captioning solution. Users can upload images through an intuitive interface and receive fluent, human-like descriptions in real time.
 
 ### Objectives
-- Showcase a production-ready image captioning pipeline
+- Create a production-ready image captioning pipeline
 - Provide an intuitive, responsive web UI
-- Offer low-latency inference via a FastAPI backend
-- Support containerized deployment with Docker
+- Deliver low-latency inference via a FastAPI backend
+- Support containerized deployment for easy scaling
 
 ---
 
 ## Key Features
-- **Drag & Drop Upload:** Easy image selection via drag-and-drop or file browser
-- **Real-Time Captioning:** Instant caption generation on the client
-- **Responsive UI:** Live image preview and caption display
-- **RESTful API:** FastAPI endpoint (`/api/caption`) for seamless integration
+- **Drag & Drop Interface:** Seamless image upload via drag-and-drop or file browser
+- **Real-Time Processing:** Instant caption generation with live feedback
+- **Responsive Design:** Works across desktop and mobile devices
+- **RESTful API:** Dedicated endpoint (`/api/caption`) for service integration
 
 ---
 
 ## Architecture
 
+The image captioning system uses a hybrid CNN-LSTM architecture with the following components:
+
 ![Architecture Diagram](architecture_diagram.png)
 
-1. **Frontend (React)**
-   - File upload and preview component
-   - Fetch API calls to the backend
-   - Dynamic caption rendering
+1. **Image Encoder:**
+   - Uses InceptionV3 (pretrained on ImageNet) as the backbone CNN
+   - Extracts high-level visual features (2048-dimensional vector)
+   - Projects features to embedding space (128-dimensional)
 
-2. **Backend (FastAPI)**
-   - `/api/caption` endpoint for image uploads and caption responses
-   - Model loaded at startup for edge latency
+2. **Caption Decoder:**
+   - Embedding layer for word representation
+   - LSTM layer (256 units) for sequence modeling
+   - Concatenated image and text features for context-aware generation
+   - Dense output layer for vocabulary prediction
 
-3. **Model (TensorFlow + Keras)**
-   - **Encoder:** InceptionV3 CNN for feature extraction
-   - **Decoder:** Transformer-based sequence generator
+3. **System Design:**
+   - **Frontend:** React application for user interaction
+   - **Backend:** FastAPI server for image processing and caption generation
+   - **Model:** TensorFlow/Keras implementation of the neural network
+
+This architecture, as shown in the diagram, effectively combines visual understanding with natural language generation.
+
+---
+
+## Implementation Details
+
+Key aspects of the implementation include:
+
+- **Vocabulary Management:** Dynamic tokenization with special tokens (`<start>`, `<end>`, `<pad>`, `<unk>`)
+- **Training Pipeline:** Parallel data processing for efficient dataset creation
+- **Mixed Precision:** Automatic mixed precision training for GPU acceleration
+- **Loss Function:** Custom masked loss to properly handle variable-length sequences
+- **Metrics:** Masked accuracy calculation to focus on non-padding tokens
+- **Inference Pipeline:** Beam search for improved caption quality
+
+---
+
+## Current Status & Future Work
+
+**Current Status:**
+- Local deployment only
+- ~48% training accuracy and ~38% validation accuracy on Flickr8k dataset
+- Basic caption generation functionality
+
+**Planned Improvements:**
+- **Attention Mechanisms:** Implementing Bahdanau attention to improve focus on relevant image regions
+- **Transformer Integration:** Replacing LSTM with Transformer decoder for better sequence modeling
+- **Dataset Expansion:** Scaling to larger datasets (Flickr30k or MSCOCO)
+- **Fine-Tuning:** Adjusting CNN encoder weights for domain adaptation
+- **Beam Search:** Implementing better decoding strategies
+- **Accuracy Target:** Aiming for at least 70% validation accuracy
+
+The screenshots show the current web interface in action, demonstrating the upload functionality and caption generation capabilities.
 
 ---
 
 ## Tech Stack
 
-| Layer          | Technology                     |
-| -------------- | ------------------------------ |
-| Frontend       | React, Fetch API, CSS          |
-| Backend        | Python, FastAPI, Uvicorn       |
-| ML Framework   | TensorFlow, Keras              |
-| Image Processing | Pillow                       |
-| Deployment     | Docker, Docker Compose         |
+| Component      | Technologies                               |
+|----------------|-------------------------------------------|
+| Frontend       | React, Fetch API, Tailwind CSS             |
+| Backend        | Python, FastAPI, Uvicorn                   |
+| ML Framework   | TensorFlow 2.x, Keras                      |
+| Image Processing | Pillow, TensorFlow Image                 |
+| Deployment     | Docker, Docker Compose                     |
+| Optimization   | TensorFlow XLA, Mixed Precision Training   |
 
 ---
 
@@ -93,7 +132,7 @@ cd image-caption-app
 #### Backend Setup
 ```bash
 cd backend
-python3 -m venv venv            # or `py -3.11 -m venv venv`
+python3 -m venv venv
 # Activate virtual environment
 # macOS/Linux
 source venv/bin/activate
@@ -118,7 +157,6 @@ uvicorn app:app --reload
 
 # Frontend
 cd ../frontend
-npm run convert-model
 npm start
 ```
 Open your browser at `http://localhost:3000`
@@ -132,20 +170,25 @@ Visit `http://localhost:3000` after services start.
 
 ---
 
-## Training the Model
+## Training Process
 
-We trained on 5 000 Flickr8k images for 10 epochs, reaching ~48% training accuracy and ~38% validation accuracy. To enhance performance:
+Our current model was trained on a subset (5,000 images) of the Flickr8k dataset for 10 epochs with the following approach:
 
-- Integrate an attention mechanism (e.g., Bahdanau or Transformer attention)
-- Increase model capacity (additional layers, larger hidden dimensions)
-- Scale dataset to Flickr30k or MSCOCO
-- Fine-tune the CNN encoder weights
-- Experiment with beam search or nucleus sampling during decoding
+- **Data Preprocessing:**
+  - Caption cleaning and normalization
+  - Vocabulary filtering (removing words with <5 occurrences)
+  - Parallel processing for efficiency
 
-```bash
-cd backend/models
-python train_model.py
-```
+- **Training Strategy:**
+  - Adam optimizer with learning rate scheduling
+  - Early stopping to prevent overfitting
+  - Model checkpointing to save best weights
+  - Mixed precision training where supported
+
+- **Performance Optimization:**
+  - Parallelized data loading and preprocessing
+  - TensorFlow XLA compilation when available
+  - Optimized dataset pipeline with prefetching and caching
 
 ---
 
@@ -155,14 +198,16 @@ python train_model.py
 image-caption-app/
 ├── backend/            # FastAPI server & model code
 │   ├── app.py          # API endpoints
-│   ├── models/         # Model definition, training & checkpoints
+│   ├── models/         # Model definition and training scripts
+│   │   ├── caption_model.py    # Core model implementation
+│   │   └── train_model.py      # Training pipeline
 │   └── utils/          # Preprocessing utilities
 ├── frontend/           # React application
 │   ├── public/         # Static assets
 │   └── src/            # Components & styles
 ├── data/               # Datasets (excluded from repo)
 ├── docker/             # Dockerfiles & compose configuration
-└── README.md           # Project overview and instructions
+└── README.md           # Project documentation
 ```
 
 ---
@@ -170,11 +215,3 @@ image-caption-app/
 ## License
 
 Licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-## Acknowledgments
-
-- Inspired by TensorFlow image captioning tutorials
-- Based on CNN–Transformer architecture research papers
-
