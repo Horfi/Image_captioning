@@ -185,7 +185,7 @@ Our current model was trained on a subset (5,000 images) of the Flickr8k dataset
   - Model checkpointing to save best weights
   - Mixed precision training where supported
 
-- **Performance Optimization:**
+- **Performance Optimization :**
   - Parallelized data loading and preprocessing
   - TensorFlow XLA compilation when available
   - Optimized dataset pipeline with prefetching and caching
